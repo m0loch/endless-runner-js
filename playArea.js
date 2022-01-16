@@ -1,26 +1,30 @@
-import React, { useCallback, useEffect } from 'react';
-import { Container, Sprite, useApp } from '@inlet/react-pixi';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Container, Sprite, useApp, useTick } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import CalculateScale from './utils/calculateScale';
 
-const tempArea = [
-    [69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69],
-    [69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69],
-    [69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69],
-    [69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69],
-    [69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69],
-    [69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69],
-    [69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69],
-    [69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69],
-    [69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69],
-    [69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69],
-    [69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-]
+const fieldMap = [];
+
+let charFrameDeltaT = 0;
 
 function PlayArea(props) {
 
     const app = useApp();
+
+    const sliderRef = useRef(null);
+
+    const [charRunFRame, setCharRunFrame] = useState(4);
+
+    useTick(dt => {
+        // Character animation
+        charFrameDeltaT += dt;
+        setCharRunFrame(4 + (Math.floor(charFrameDeltaT / 5) % 3));
+
+        // Move background
+        if (sliderRef && sliderRef.current) {
+            sliderRef.current.x = -(Math.floor(charFrameDeltaT) % 16);
+        }
+    });
 
     const resize = useCallback((containerRef) => {
 
@@ -49,6 +53,11 @@ function PlayArea(props) {
 
         window.addEventListener('resize', resize);
 
+        // TEMP: init field
+        for (let i = 0; i < 17; i++) {
+            fieldMap.push([null,null,null,null,null,null,null,null,null,null,null,1]);
+        }
+
         return () => window.removeEventListener('resize', resize);
 
     }, [resize]);
@@ -59,18 +68,26 @@ function PlayArea(props) {
 
     return (
         <Container ref={resizeRef}>
-            {tempArea.map((row, i) =>
-                row.map((tile, j) =>
+            <Container id="slider" ref={sliderRef}>
+            {fieldMap.map((col, i) =>
+                col.map((tile, j) =>
                         tile ? 
                             <Sprite
-                                key={i * row.length + j}
+                                key={i * col.length + j}
                                 texture={PIXI.utils.TextureCache[`nature-paltformer-tileset-16x16${tile}.png`]}
-                                x={16 * j}
-                                y={16 * i}
+                                x={16 * i}
+                                y={16 * j}
                             />
                             : null
                 )
             )}
+            </Container>
+            <Sprite
+                key={'char'}
+                texture={PIXI.utils.TextureCache[`Standard sprites upd${charRunFRame}.png`]}
+                x={3}
+                y={16*10}
+            />
         </Container>
     )
 }
