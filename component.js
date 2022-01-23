@@ -15,6 +15,7 @@ function EndlessRunner(props) {
 
         if (!PIXI.utils.TextureCache['img']) {
             loader
+                .reset()
                 .add('char', `${props.assetsFolder}/nature-paltformer-tileset-16x16.json`)
                 .add('tiles', `${props.assetsFolder}/Standard sprites upd.json`)
                 .load(() => {

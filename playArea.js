@@ -51,25 +51,20 @@ function PlayArea(props) {
 
     const resize = useCallback((containerRef) => {
 
-        const fit = CalculateScale(app.view.parentNode.clientWidth, app.view.parentNode.clientHeight);
+        if (containerRef) {
+            const fit = CalculateScale(app.view.parentNode.clientWidth, app.view.parentNode.clientHeight);
 
-        app.renderer.resize(fit.width, fit.height);
+            app.renderer.resize(fit.width, fit.height);
 
-        containerRef.scale = {
-            x: fit.scale,
-            y: fit.scale,
+            containerRef.scale = {
+                x: fit.scale,
+                y: fit.scale,
+            }
         }
-
     },  [app.renderer, app.view.parentNode]); 
 
     const resizeRef = useCallback((containerRef) => {
-
         resize(containerRef);
-
-        window.addEventListener('resize', () => resize(containerRef));
-
-        return () => window.removeEventListener('resize');
-        
     }, [resize]); 
 
     const handleUserKeyPress = useCallback((event) => {
