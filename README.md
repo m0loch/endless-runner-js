@@ -15,14 +15,13 @@ PIXI.js
 @inlet/react-pixi
 
 ## Work that still needs to be done
-1. implement run animation
-2. implement jump animation
-3. controls
+1. implement jump animation
+2. controls
     + double jump? tap vs hold for higher jump?
-4. score
+3. score
     + coins?
     + distance count
-5. think of extra mechanics
+4. think of extra mechanics
 
 ## Issues
 The assets are saved inside the */assets* folder, but React.js needs them to be in the public folder.

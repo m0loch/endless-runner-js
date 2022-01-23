@@ -2,10 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Container, Sprite, useApp, useTick } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import CalculateScale from './utils/calculateScale';
+import TerrainFactory from './utils/terrainFactory';
 
-const fieldMap = [];
-
-let charFrameDeltaT = 0;
+let charFrameDeltaT = 0, sliderFrame = 0;
 
 function PlayArea(props) {
 
@@ -14,17 +13,41 @@ function PlayArea(props) {
     const sliderRef = useRef(null);
 
     const [charRunFRame, setCharRunFrame] = useState(4);
+    const [fieldMap, setFieldMap] = useState(Array(17).fill(TerrainFactory.GetBase()));
 
-    useTick(dt => {
+    const gameloop = useCallback((dt) => {
         // Character animation
         charFrameDeltaT += dt;
         setCharRunFrame(4 + (Math.floor(charFrameDeltaT / 5) % 3));
 
         // Move background
         if (sliderRef && sliderRef.current) {
-            sliderRef.current.x = -(Math.floor(charFrameDeltaT) % 16);
+            sliderFrame += dt;
+
+            while (sliderFrame >= 16) {
+                // If the first column is out of screen,
+                // burn it and get the next column from the factory
+                setFieldMap(prevValue => {
+                    let newVal = []
+                    prevValue.forEach((item, idx) => {
+                        if (idx > 0) {
+                            newVal.push(item);
+                        }
+                    });
+
+                    newVal.push(TerrainFactory.GetNext());
+                    return newVal;
+                });
+
+                sliderFrame -= 16;
+            }
+
+            // After all the calculations, update the position
+            sliderRef.current.x = -sliderFrame;
         }
-    });
+    }, []);
+
+    useTick(dt => gameloop(dt));
 
     const resize = useCallback((containerRef) => {
 
@@ -49,18 +72,21 @@ function PlayArea(props) {
         
     }, [resize]); 
 
-    useEffect(() => {
-
-        window.addEventListener('resize', resize);
-
-        // TEMP: init field
-        for (let i = 0; i < 17; i++) {
-            fieldMap.push([null,null,null,null,null,null,null,null,null,null,null,1]);
+    const handleUserKeyPress = useCallback((event) => {
+        if (event.key === " ") {
+            // Placeholder: perform jump
         }
+    }, []);
 
-        return () => window.removeEventListener('resize', resize);
-
-    }, [resize]);
+    useEffect(() => {
+        window.addEventListener('resize', resize);
+        window.addEventListener('keydown', handleUserKeyPress);
+  
+        return () => {
+            window.removeEventListener('resize', resize);
+            window.removeEventListener('keydown', handleUserKeyPress);
+        }
+    }, [resize, handleUserKeyPress]);
 
     if (!props.loaded) {
         return(null);
