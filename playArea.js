@@ -8,12 +8,27 @@ let charFrameDeltaT = 0, sliderFrame = 0;
 
 function PlayArea(props) {
 
+    const getCharTexture = (vVel) => {
+        if (vVel === 0) {
+            return PIXI.utils.TextureCache[`Standard sprites upd${charRunFRame}.png`];
+        } else if (vVel < 0) {
+            return PIXI.utils.TextureCache[`Standard sprites upd${7}.png`];
+        } else {
+            return PIXI.utils.TextureCache[`Standard sprites upd${8}.png`];
+        }
+    }
+
     const app = useApp();
 
     const sliderRef = useRef(null);
 
     const [charRunFRame, setCharRunFrame] = useState(4);
     const [fieldMap, setFieldMap] = useState(Array(17).fill(TerrainFactory.GetBase()));
+    const [character, setCharacter] = useState({
+        x: 3,
+        y: 16*10,
+        vVel: 0,
+    });
 
     const gameloop = useCallback((dt) => {
         // Character animation
@@ -69,9 +84,21 @@ function PlayArea(props) {
 
     const handleUserKeyPress = useCallback((event) => {
         if (event.key === " ") {
-            // Placeholder: perform jump
+            if (character.vVel === 0) {
+                setCharacter({
+                    x: character.x,
+                    y: character.y,
+                    vVel: character.vVel - 10,
+                });
+            } else {
+                setCharacter({
+                    x: character.x,
+                    y: character.y,
+                    vVel: 0,
+                });
+            }
         }
-    }, []);
+    }, [character]);
 
     useEffect(() => {
         window.addEventListener('resize', resize);
@@ -105,9 +132,8 @@ function PlayArea(props) {
             </Container>
             <Sprite
                 key={'char'}
-                texture={PIXI.utils.TextureCache[`Standard sprites upd${charRunFRame}.png`]}
-                x={3}
-                y={16*10}
+                texture={getCharTexture(character.vVel)}
+                {...character}
             />
         </Container>
     )
