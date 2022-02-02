@@ -3,26 +3,17 @@ import { Container, Sprite, useApp, useTick } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import CalculateScale from './utils/calculateScale';
 import TerrainFactory from './utils/terrainFactory';
+import GetCharTexture from './utils/charStates';
 
 let charFrameDeltaT = 0, sliderFrame = 0;
 
 function PlayArea(props) {
 
-    const getCharTexture = (vVel) => {
-        if (vVel === 0) {
-            return PIXI.utils.TextureCache[`Standard sprites upd${charRunFRame}.png`];
-        } else if (vVel < 0) {
-            return PIXI.utils.TextureCache[`Standard sprites upd${7}.png`];
-        } else {
-            return PIXI.utils.TextureCache[`Standard sprites upd${8}.png`];
-        }
-    }
-
     const app = useApp();
 
     const sliderRef = useRef(null);
 
-    const [charRunFRame, setCharRunFrame] = useState(4);
+    const [charRunFRame, setCharRunFrame] = useState(0);
     const [fieldMap, setFieldMap] = useState(Array(17).fill(TerrainFactory.GetBase()));
     const [character, setCharacter] = useState({
         x: 3,
@@ -33,7 +24,11 @@ function PlayArea(props) {
     const gameloop = useCallback((dt) => {
         // Character animation
         charFrameDeltaT += dt;
-        setCharRunFrame(4 + (Math.floor(charFrameDeltaT / 5) % 3));
+
+        // MAGIC NUMBERS:
+        // Division by 5 in order to regulate the animation's speed
+        // Module 12 because that's the least common multiple between 2, 3 and 4, being the animation's frame lengths
+        setCharRunFrame(Math.floor(charFrameDeltaT / 5) % 12);
 
         // Move background
         if (sliderRef && sliderRef.current) {
@@ -132,7 +127,7 @@ function PlayArea(props) {
             </Container>
             <Sprite
                 key={'char'}
-                texture={getCharTexture(character.vVel)}
+                texture={GetCharTexture(character, charRunFRame)}
                 {...character}
             />
         </Container>

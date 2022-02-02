@@ -25,3 +25,20 @@
 //         └──────┬─────┘
 //                ↓
 //            COLLISION → GAME OVER
+
+import * as PIXI from 'pixi.js';
+
+function GetCharTexture(char, frame) {
+    if (char.vVel === 0) {
+        // RUN
+        return PIXI.utils.TextureCache[`Standard sprites upd${4 + (frame % 3)}.png`];
+    } else if (char.vVel < 0) {
+        // JUMP
+        return PIXI.utils.TextureCache[`Standard sprites upd${7}.png`];
+    } else {
+        // FALL
+        return PIXI.utils.TextureCache[`Standard sprites upd${8}.png`];
+    }
+}
+
+export default GetCharTexture;
