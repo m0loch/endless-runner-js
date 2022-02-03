@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Container, Sprite, useApp, useTick } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import CalculateScale from './utils/calculateScale';
 import TerrainFactory from './utils/terrainFactory';
-import GetCharTexture from './utils/charStates';
+import Character from './utils/character';
 
-let charFrameDeltaT = 0, sliderFrame = 0;
+let charFrameAccumulator = 0, sliderFrame = 0;
 
 function PlayArea(props) {
 
@@ -13,23 +13,24 @@ function PlayArea(props) {
 
     const sliderRef = useRef(null);
 
-    const [charRunFRame, setCharRunFrame] = useState(0);
+    const char = useMemo(() => new Character(), []);
+
     const [fieldMap, setFieldMap] = useState(Array(17).fill(TerrainFactory.GetBase()));
-    const [character, setCharacter] = useState({
-        x: 3,
-        y: 16*10,
-        vVel: 0,
-    });
+    const [character, setCharacter] = useState(char.GetValue());
 
     const gameloop = useCallback((dt) => {
         // Character animation
-        charFrameDeltaT += dt;
+        charFrameAccumulator += dt;// (charFrameAccumulator + dt) % 60;
 
-        // MAGIC NUMBERS:
-        // Division by 5 in order to regulate the animation's speed
-        // Module 12 because that's the least common multiple between 2, 3 and 4, being the animation's frame lengths
-        setCharRunFrame(Math.floor(charFrameDeltaT / 5) % 12);
+        // Compute gravity
+        char.AddVerticalVelocity(0.5);
+        char.CheckCollisions();
 
+        char.UpdateFrame(charFrameAccumulator);
+
+        setCharacter(char.GetValue());
+
+        // TAKE THIS TO ITS OWN CLASS / FUNCTION
         // Move background
         if (sliderRef && sliderRef.current) {
             sliderFrame += dt;
@@ -55,7 +56,7 @@ function PlayArea(props) {
             // After all the calculations, update the position
             sliderRef.current.x = -sliderFrame;
         }
-    }, []);
+    }, [char]);
 
     useTick(dt => gameloop(dt));
 
@@ -79,21 +80,9 @@ function PlayArea(props) {
 
     const handleUserKeyPress = useCallback((event) => {
         if (event.key === " ") {
-            if (character.vVel === 0) {
-                setCharacter({
-                    x: character.x,
-                    y: character.y,
-                    vVel: character.vVel - 10,
-                });
-            } else {
-                setCharacter({
-                    x: character.x,
-                    y: character.y,
-                    vVel: 0,
-                });
-            }
+            char.Jump();
         }
-    }, [character]);
+    }, [char]);
 
     useEffect(() => {
         window.addEventListener('resize', resize);
@@ -127,7 +116,7 @@ function PlayArea(props) {
             </Container>
             <Sprite
                 key={'char'}
-                texture={GetCharTexture(character, charRunFRame)}
+                texture={char.GetTexture()}
                 {...character}
             />
         </Container>

@@ -15,9 +15,13 @@ PIXI.js
 @inlet/react-pixi
 
 ## Work that still needs to be done
-1. implement jump animation
-2. controls
+1. implement actual states for the character
+2. randomized generation of upcoming terrain
+3. controls and balancing
+    + is the jump high enough?
+    + is the speed correct?
     + double jump? tap vs hold for higher jump?
+    + does the tiles need to be bigger?
 3. score
     + coins?
     + distance count
