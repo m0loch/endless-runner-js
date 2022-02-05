@@ -14,13 +14,39 @@ function PlayArea(props) {
     const sliderRef = useRef(null);
 
     const char = useMemo(() => new Character(), []);
+    const terrainFactory = useMemo(() => new TerrainFactory(), []);
 
-    const [fieldMap, setFieldMap] = useState(Array(17).fill(TerrainFactory.GetBase()));
+    const [fieldMap, setFieldMap] = useState(terrainFactory.GetInitialSetup());
     const [character, setCharacter] = useState(char.GetValue());
+
+    const slideLevel = useCallback((dt) => {
+        sliderFrame += dt * 2;
+
+        while (sliderFrame >= 16) {
+            // If the first column is out of screen,
+            // burn it and get the next column from the factory
+            setFieldMap(prevValue => {
+                let newVal = []
+                prevValue.forEach((item, idx) => {
+                    if (idx > 0) {
+                        newVal.push(item);
+                    }
+                });
+
+                newVal.push(terrainFactory.GetNext());
+                return newVal;
+            });
+
+            sliderFrame -= 16;
+        }
+
+        // After all the calculations, update the position
+        sliderRef.current.x = -sliderFrame;
+    }, [terrainFactory]);
 
     const gameloop = useCallback((dt) => {
         // Character animation
-        charFrameAccumulator += dt;// (charFrameAccumulator + dt) % 60;
+        charFrameAccumulator = (charFrameAccumulator + dt) % 60;
 
         // Compute gravity
         char.AddVerticalVelocity(0.5);
@@ -30,33 +56,11 @@ function PlayArea(props) {
 
         setCharacter(char.GetValue());
 
-        // TAKE THIS TO ITS OWN CLASS / FUNCTION
         // Move background
         if (sliderRef && sliderRef.current) {
-            sliderFrame += dt;
-
-            while (sliderFrame >= 16) {
-                // If the first column is out of screen,
-                // burn it and get the next column from the factory
-                setFieldMap(prevValue => {
-                    let newVal = []
-                    prevValue.forEach((item, idx) => {
-                        if (idx > 0) {
-                            newVal.push(item);
-                        }
-                    });
-
-                    newVal.push(TerrainFactory.GetNext());
-                    return newVal;
-                });
-
-                sliderFrame -= 16;
-            }
-
-            // After all the calculations, update the position
-            sliderRef.current.x = -sliderFrame;
+            slideLevel(dt);
         }
-    }, [char]);
+    }, [char, slideLevel]);
 
     useTick(dt => gameloop(dt));
 

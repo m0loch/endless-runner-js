@@ -79,7 +79,7 @@ class Character {
 
     // CHARACTER INPUTS
     Jump() {
-        this.vVel -= 10;
+        this.vVel -= 11;
     }
 
     Land() {
