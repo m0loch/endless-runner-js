@@ -12,28 +12,28 @@ function Clamp(min, current, max) {
 //
 // The character is to be considered as a finite-state machine, with every state being linked to a specific animation.
 //
-// IDL
+// IDLE
 // This will be the state of the character up until the start of the run.
 //
-// RUN
+// RUNNING
 // Standard run animation → when running on solid surfaces.
 //
-// JUMP
+// JUMPING
 // Upward jump → negative vertical velocity: the character is gaining height.
 //
-// FALL
+// FALLING
 // Downward fall → positive vertical velocity: the character is losing height.
 //
-// COLLISION
+// HIT
 // The character has collided with an obstacle and the game is over.
 
-// const CharState = {
-//     Idle: [0, 1, 2, 3],
-//     Walking: [4, 5, 6],
-//     Jumping: [7],
-//     Falling: [8],
-//     Hit: [9],
-// }
+const CharState = {
+    Idle: [0, 1, 2, 3],
+    Running: [4, 5, 6],
+    Jumping: [7],
+    Falling: [8],
+    Hit: [9],
+}
 
 //         ┌────────────┐
 //         ↓            ↑
@@ -44,23 +44,16 @@ function Clamp(min, current, max) {
 
 class Character {
     constructor() {
-        this.x = 3;
-        this.y = 160; // TEMP
+        this.x = 16;
+        this.y = 160;
         this.frame = 0;
         this.vVel = 0;
+        this.state = CharState.Idle;
+        this.hit = false;
     }
 
     GetTexture() {
-        if (this.y === 160) {
-            // RUN
-            return PIXI.utils.TextureCache[`Standard sprites upd${4 + (this.frame % 3)}.png`];
-        } else if (this.vVel < 0) {
-            // JUMP
-            return PIXI.utils.TextureCache[`Standard sprites upd${7}.png`];
-        } else {
-            // FALL
-            return PIXI.utils.TextureCache[`Standard sprites upd${8}.png`];
-        }
+        return PIXI.utils.TextureCache[`Standard sprites upd${this.state[this.frame % this.state.length]}.png`];
     }
 
     GetValue() {
@@ -79,11 +72,13 @@ class Character {
 
     // CHARACTER INPUTS
     Jump() {
-        this.vVel -= 11;
+        if (this.state === CharState.Running) {
+            this.vVel -= 8;
+        }
     }
 
     Land() {
-        this.vVel = 0;
+        this.vVel = 0.0;
     }
 
     // PHYSICS
@@ -91,9 +86,35 @@ class Character {
         this.vVel = Clamp(-50, this.vVel + value, 5);
     }
 
-    // TEMP: just checks a "static" ground value
-    CheckCollisions() {
-        this.y = ((this.y + this.vVel) > 160) ? 160 : this.y + this.vVel;
+    CheckCollisions(objectsMap) {
+        this.y = this.y + this.vVel;
+
+        const baseX = Math.floor(this.x / 16);
+        const baseY = Math.floor(this.y / 16);
+
+        // Vertical check
+        if ((objectsMap[baseX][baseY+1] != null) || (objectsMap[baseX+1][baseY+1] != null)) {
+            this.y = baseY * 16;
+            this.Land();
+        }
+
+        // Obstacles collision
+        if (objectsMap[baseX+1][baseY] != null) {
+            this.hit = true;
+        }
+
+        // Check state
+        if (this.hit) {
+            this.state = CharState.Hit;
+        } else if (this.vVel === 0.0) {
+            this.state = CharState.Running;
+        } else if (this.vVel < 0) {
+            this.state = CharState.Jumping;
+        } else {
+            this.state = CharState.Falling;
+        }
+
+        return this.hit;
     }
 }
 

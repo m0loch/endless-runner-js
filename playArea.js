@@ -7,6 +7,9 @@ import Character from './utils/character';
 
 let charFrameAccumulator = 0, sliderFrame = 0;
 
+// TEMP - "game over"
+let stop = false;
+
 function PlayArea(props) {
 
     const app = useApp();
@@ -45,22 +48,26 @@ function PlayArea(props) {
     }, [terrainFactory]);
 
     const gameloop = useCallback((dt) => {
+        if (stop) return;
+
         // Character animation
         charFrameAccumulator = (charFrameAccumulator + dt) % 60;
 
         // Compute gravity
         char.AddVerticalVelocity(0.5);
-        char.CheckCollisions();
+        if (char.CheckCollisions(fieldMap)) {
+            stop = true;
+        }
 
         char.UpdateFrame(charFrameAccumulator);
 
         setCharacter(char.GetValue());
 
         // Move background
-        if (sliderRef && sliderRef.current) {
+        if (!stop && sliderRef && sliderRef.current) {
             slideLevel(dt);
         }
-    }, [char, slideLevel]);
+    }, [char, fieldMap, slideLevel]);
 
     useTick(dt => gameloop(dt));
 
