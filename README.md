@@ -16,7 +16,7 @@ PIXI.js
 
 ## Work that still needs to be done
 1. implement actual states for the character
-2. randomized generation of upcoming terrain
+2. refine random generation of upcoming terrain
 3. controls and balancing
     + is the jump high enough?
     + is the speed correct?
