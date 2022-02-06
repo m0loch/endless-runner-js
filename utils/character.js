@@ -78,7 +78,9 @@ class Character {
     }
 
     Land() {
-        this.vVel = 0.0;
+        if (this.vVel > 0) {
+            this.vVel = 0.0;
+        }
     }
 
     // PHYSICS

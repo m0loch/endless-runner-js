@@ -4,6 +4,7 @@ import * as PIXI from 'pixi.js';
 import CalculateScale from './utils/calculateScale';
 import TerrainFactory from './utils/terrainFactory';
 import Character from './utils/character';
+import BackgroundFactory from './utils/backgroundFactory';
 
 let charFrameAccumulator = 0, sliderFrame = 0;
 
@@ -18,7 +19,9 @@ function PlayArea(props) {
 
     const char = useMemo(() => new Character(), []);
     const terrainFactory = useMemo(() => new TerrainFactory(), []);
+    const backgroundFactory = useMemo(() => new BackgroundFactory(), []);
 
+    const [bgMap, setBgMap] = useState(backgroundFactory.GetInitialSetup());
     const [fieldMap, setFieldMap] = useState(terrainFactory.GetInitialSetup());
     const [character, setCharacter] = useState(char.GetValue());
 
@@ -64,8 +67,10 @@ function PlayArea(props) {
         setCharacter(char.GetValue());
 
         // Move background
-        if (!stop && sliderRef && sliderRef.current) {
-            slideLevel(dt);
+        if (!stop) {
+            if (sliderRef && sliderRef.current) {
+                slideLevel(dt);
+            }
         }
     }, [char, fieldMap, slideLevel]);
 
@@ -95,15 +100,19 @@ function PlayArea(props) {
         }
     }, [char]);
 
+    const handleTap = useCallback(() => char.Jump(), [char]);
+
     useEffect(() => {
         window.addEventListener('resize', resize);
         window.addEventListener('keydown', handleUserKeyPress);
+        window.addEventListener('pointerdown', handleTap);
   
         return () => {
             window.removeEventListener('resize', resize);
             window.removeEventListener('keydown', handleUserKeyPress);
+            window.removeEventListener('pointerdown', handleTap);
         }
-    }, [resize, handleUserKeyPress]);
+    }, [resize, handleUserKeyPress, handleTap]);
 
     if (!props.loaded) {
         return(null);
@@ -111,10 +120,22 @@ function PlayArea(props) {
 
     return (
         <Container ref={resizeRef}>
+            <Container id="bgSlider">
+            {bgMap.map((col, i) =>
+                col.map((tile, j) =>
+                    <Sprite
+                        key={i * col.length + j}
+                        texture={PIXI.utils.TextureCache[`nature-paltformer-tileset-16x16${tile}.png`]}
+                        x={16 * i}
+                        y={16 * j}
+                    />
+                )
+            )}
+            </Container>
             <Container id="slider" ref={sliderRef}>
             {fieldMap.map((col, i) =>
                 col.map((tile, j) =>
-                        tile ? 
+                        tile !== null ? 
                             <Sprite
                                 key={i * col.length + j}
                                 texture={PIXI.utils.TextureCache[`nature-paltformer-tileset-16x16${tile}.png`]}

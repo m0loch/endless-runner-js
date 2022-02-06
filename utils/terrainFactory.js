@@ -36,7 +36,7 @@ class TerrainFactory {
     }
 
     GetInitialSetup() {
-        const retVal = Array(16).fill(Normalize([1]))
+        const retVal = Array(16).fill(Normalize([1]));
         retVal.push(Normalize([2]));
         return retVal;
     }

@@ -16,15 +16,16 @@ PIXI.js
 
 ## Work that still needs to be done
 1. polish
+    + parallax background
     + refine random generation of upcoming terrain
     + the game should start with the character being idle until the user "jumps"
     + game over animation
     + game over screen that should let the player restart
 2. controls and balancing
-    + tap for start/jump on mobile
+    + tap for start on mobile
     + game over for falling out of bounds
     + the check for land is too forgiving
-    + is the jump high enough?
+    + is the jump high enough or too high?
     + is the speed correct?
     + do the tiles need to be bigger?
 3. score
