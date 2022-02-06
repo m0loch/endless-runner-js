@@ -1,6 +1,6 @@
 const SectionsDefinitions = {
     hole: [
-        []
+        [],
     ],
     step: [
         [],
@@ -20,7 +20,20 @@ const SectionsDefinitions = {
         [1],
         [1],
         [2],
-    ]
+    ],
+    crate: [
+        [],
+        [0],
+        [49, 1],
+        [1],
+        [2],
+    ],
+    tree: [
+        [0],
+        [1],
+        [1],
+        [22, 29, 37, 2],
+    ],
 }
 
 const EmptyColumn = [null, null, null, null, null, null, null, null, null, null, null, null];

@@ -89,10 +89,19 @@ class Character {
     }
 
     CheckCollisions(objectsMap) {
+        if (objectsMap.length === 0) {
+            return;
+        }
+
         this.y = this.y + this.vVel;
 
         const baseX = Math.floor(this.x / 16);
         const baseY = Math.floor(this.y / 16);
+
+        // Pitfall
+        if (baseY >= 11) {
+            this.hit = true;
+        }
 
         // Vertical check
         if ((objectsMap[baseX][baseY+1] != null) || (objectsMap[baseX+1][baseY+1] != null)) {

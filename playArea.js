@@ -6,7 +6,7 @@ import TerrainFactory from './utils/terrainFactory';
 import Character from './utils/character';
 import BackgroundFactory from './utils/backgroundFactory';
 
-let charFrameAccumulator = 0, sliderFrame = 0;
+let charFrameAccumulator = 0, sliderFrame = 0, bgSliderFrame = 0;
 
 // TEMP - "game over"
 let stop = false;
@@ -15,15 +15,47 @@ function PlayArea(props) {
 
     const app = useApp();
 
+    const bgSliderRef = useRef(null);
     const sliderRef = useRef(null);
 
     const char = useMemo(() => new Character(), []);
     const terrainFactory = useMemo(() => new TerrainFactory(), []);
     const backgroundFactory = useMemo(() => new BackgroundFactory(), []);
 
-    const [bgMap, setBgMap] = useState(backgroundFactory.GetInitialSetup());
-    const [fieldMap, setFieldMap] = useState(terrainFactory.GetInitialSetup());
+    const [bgMap, setBgMap] = useState([]);
+    const [fieldMap, setFieldMap] = useState([]);
     const [character, setCharacter] = useState(char.GetValue());
+
+    useEffect(() => {
+        setBgMap(backgroundFactory.GetInitialSetup());
+    }, [backgroundFactory]);
+
+    useEffect(() => {
+        setFieldMap(terrainFactory.GetInitialSetup());
+    }, [terrainFactory]);
+
+    const slideBg = useCallback((dt) => {
+        // Function symmetrical to slideLevel
+        bgSliderFrame += dt;
+
+        while (bgSliderFrame >= 16) {
+            setBgMap(prevValue => {
+                let newVal = []
+                prevValue.forEach((item, idx) => {
+                    if (idx > 0) {
+                        newVal.push(item);
+                    }
+                });
+
+                newVal.push(backgroundFactory.GetNext());
+                return newVal;
+            });
+
+            bgSliderFrame -= 16;
+        }
+
+        bgSliderRef.current.x = -bgSliderFrame;
+    }, [backgroundFactory]);
 
     const slideLevel = useCallback((dt) => {
         sliderFrame += dt * 2;
@@ -50,8 +82,8 @@ function PlayArea(props) {
         sliderRef.current.x = -sliderFrame;
     }, [terrainFactory]);
 
-    const gameloop = useCallback((dt) => {
-        if (stop) return;
+    const gameloop = useCallback((dt, force) => {
+        if (stop && !force) return;
 
         // Character animation
         charFrameAccumulator = (charFrameAccumulator + dt) % 60;
@@ -67,12 +99,14 @@ function PlayArea(props) {
         setCharacter(char.GetValue());
 
         // Move background
-        if (!stop) {
-            if (sliderRef && sliderRef.current) {
-                slideLevel(dt);
-            }
+        if (sliderRef && sliderRef.current) {
+            slideLevel(dt);
         }
-    }, [char, fieldMap, slideLevel]);
+
+        if (bgSliderRef && bgSliderRef.current) {
+            slideBg(dt);
+        }
+    }, [char, fieldMap, slideLevel, slideBg]);
 
     useTick(dt => gameloop(dt));
 
@@ -120,7 +154,7 @@ function PlayArea(props) {
 
     return (
         <Container ref={resizeRef}>
-            <Container id="bgSlider">
+            <Container id="bgSlider" ref={bgSliderRef}>
             {bgMap.map((col, i) =>
                 col.map((tile, j) =>
                     <Sprite
