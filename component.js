@@ -1,11 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as PIXI from 'pixi.js';
 import { Stage } from '@inlet/react-pixi';
 import PlayArea from './playArea';
 
 function EndlessRunner(props) {
 
-    const mainRef = useRef(null);
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
@@ -23,7 +22,7 @@ function EndlessRunner(props) {
 
 
     return (
-        <div style={{position: "relative", margin: "auto", width: "100%", height: "100%", display: "flex", alignContent: "center", justifyContent: "center"}} ref={mainRef}>
+        <div style={{position: "relative", margin: "auto", width: "100%", height: "100%", display: "flex", alignContent: "center", justifyContent: "center"}}>
                 <Stage
                     style={{margin:"auto"}}
                     options={{
